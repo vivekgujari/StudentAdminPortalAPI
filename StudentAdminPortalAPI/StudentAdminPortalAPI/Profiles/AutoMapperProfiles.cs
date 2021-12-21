@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using StudentAdminPortalAPI.DomainModels;
+using StudentAdminPortalAPI.Profiles.AfterMaps;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,15 @@ namespace StudentAdminPortalAPI.Profiles
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Student, DataModels.Student>().ReverseMap();
-            CreateMap<Gender, DataModels.Gender>().ReverseMap();
-            CreateMap<Address, DataModels.Address>().ReverseMap();
+            CreateMap<DataModels.Student, Student>().ReverseMap();
+
+            CreateMap<DataModels.Gender, Gender>().ReverseMap();
+
+            CreateMap<DataModels.Address, Address>().ReverseMap();
+
+            CreateMap<UpdateStudentRequest, DataModels.Student>()
+                .AfterMap<UpdateStudentRequestAfterMap>().ReverseMap();
+            
         }
     }
 }

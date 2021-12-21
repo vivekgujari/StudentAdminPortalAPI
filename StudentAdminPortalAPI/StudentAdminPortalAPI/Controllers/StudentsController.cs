@@ -26,7 +26,7 @@ namespace StudentAdminPortalAPI.Controllers
         public async Task<IActionResult> GetAllStudents()
         {
             var students = await _studentRepository.GetStudentsAsync();
-            
+
             return Ok(_mapper.Map<List<Student>>(students));
         }
 
@@ -38,6 +38,24 @@ namespace StudentAdminPortalAPI.Controllers
             if (student == null)
                 return NotFound();
             return Ok(_mapper.Map<Student>(student));
+        }
+
+        [HttpPut]
+        [Route("[controller]/{studentId:guid}")]
+        public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId,
+            [FromBody] UpdateStudentRequest request)
+        {
+            if (await _studentRepository.Exists(studentId))
+            {
+                var updatedStudent = await _studentRepository
+                    .UpdateStudent(studentId, _mapper.Map<DataModels.Student>(request)); // if this is not awaited then we get Task<DataModels.Student> object
+
+                if (updatedStudent != null)
+                    return Ok(_mapper.Map<Student>(updatedStudent));
+            }
+
+            return NotFound();
+
         }
     }
 }
