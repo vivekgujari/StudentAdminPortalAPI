@@ -70,7 +70,7 @@ namespace StudentAdminPortalAPI.Controllers
             if (await _studentRepository.Exists(studentId))
             {
                 var student = await _studentRepository.DeleteStudent(studentId);
-                return Ok(_mapper.Map<Student>(student));             
+                return Ok(_mapper.Map<Student>(student));
             }
 
             return NotFound();
@@ -81,7 +81,7 @@ namespace StudentAdminPortalAPI.Controllers
         public async Task<IActionResult> AddStudentAsync([FromBody] AddStudentRequest request)
         {
             var student = await _studentRepository.AddStudent(_mapper.Map<DataModels.Student>(request));
-            return CreatedAtAction(nameof(GetStudentAsync), new { studentId = student.Id }, 
+            return CreatedAtAction(nameof(GetStudentAsync), new { studentId = student.Id },
                 _mapper.Map<Student>(student));
         }
 
@@ -89,19 +89,31 @@ namespace StudentAdminPortalAPI.Controllers
         [Route("[controller]/{studentId:guid}/upload-image")]
         public async Task<IActionResult> UploadImage([FromRoute] Guid studentId, IFormFile profileImage)
         {
-            if (await _studentRepository.Exists(studentId))
+            var validExtensions = new List<string> { ".jpeg", ".png", ".gif", ".jpg" };
+
+            if (profileImage != null && profileImage.Length > 0)
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
-
-                var fileImagePath = await _imageRepository.Upload(profileImage, fileName);
-
-                if (await _studentRepository.UpdateProfileImage(studentId, fileImagePath))
+                var extension = Path.GetExtension(profileImage.FileName);
+                if (validExtensions.Contains(extension))
                 {
-                    return Ok(fileImagePath);
-                }
+                    if (await _studentRepository.Exists(studentId))
+                    {
+                        var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+                        var fileImagePath = await _imageRepository.Upload(profileImage, fileName);
+
+                        if (await _studentRepository.UpdateProfileImage(studentId, fileImagePath))
+                        {
+                            return Ok(fileImagePath);
+                        }
+
+                        return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+                    }
+                }
+                return BadRequest("This is not a valid image");
             }
+
+
             return NotFound();
         }
     }
